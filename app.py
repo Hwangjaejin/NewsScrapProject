@@ -22,6 +22,11 @@ def show_topArticles():
     top_views = list(db.allnews.find({},{'_id':False}).sort('view',-1).limit(5))
     return jsonify({'top_views': top_views})
 
+@app.route('/article/headline', methods=['GET'])
+def show_headlineArticles():
+    haedline_news = list(db.headlinenews.find({},{'_id':False}))
+    return jsonify({'haedline_news': haedline_news})
+
 @app.route('/article/views', methods=['POST'])
 def view_article():
     url_receive = request.form['article_url']

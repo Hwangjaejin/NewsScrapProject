@@ -212,19 +212,20 @@
                             temp_html = `<div class="carousel-item active">
                                             <a href="${src_url}" target="_blank">
                                                 <img src="${img_url}" class="d-block w-100 headline_img">
+                                                    <div class="carousel-caption d-none d-md-block">
+                                                    <h5>${title}</h5>
+                                                </div>
                                             </a>
-                                            <div class="carousel-caption d-none d-md-block">
-                                                <p>${title}</p>
-                                            </div>
                                         </div>`
                         }else{
                             temp_html = `<div class="carousel-item">
                                             <a href="${src_url}" target="_blank">
                                                 <img src="${img_url}" class="d-block w-100 headline_img">
+                                                <div class="carousel-caption d-none d-md-block">
+                                                    <h5>${title}</h5>
+                                                </div>
                                             </a>
-                                            <div class="carousel-caption d-none d-md-block">
-                                                <p>${title}</p>
-                                            </div>
+
                                         </div>`
                         }
                         $('#headline_news').append(temp_html)

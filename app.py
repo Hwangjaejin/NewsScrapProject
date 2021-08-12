@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, request
 app = Flask(__name__)
 
 from pymongo import MongoClient
+# client = MongoClient('mongodb://test:test@localhost', 27017)
 client = MongoClient('localhost', 27017)
 db = client.newsdb
 
@@ -12,20 +13,25 @@ def home():
 
 # API 역할을 하는 부분
 @app.route('/article', methods=['GET'])
-def show_stars():
+def show_articles():
     news = list(db.news.find({},{'_id':False}).sort('company_name',1))
     return jsonify({'all_news': news})
 
+@app.route('/article/views', methods=['GET'])
+def show_topArticles():
+    top_views = list(db.allnews.find({},{'_id':False}).sort('view',-1).limit(5))
+    return jsonify({'top_views': top_views})
 
-@app.route('/api/like', methods=['POST'])
-def like_star():
-    name_receive = request.form['name_give']
-    target_star = db.mystar.find_one({'name':name_receive})
-    current_like = target_star['like']
+@app.route('/article/views', methods=['POST'])
+def view_article():
+    url_receive = request.form['article_url']
+    print(url_receive)
+    target_views = db.allnews.find_one({'article_url':url_receive})
+    current_views = target_views['view']
 
-    new_like = current_like + 1
+    new_views = current_views + 1
 
-    db.mystar.update_one({'name':name_receive},{'$set':{'like':new_like}})
+    db.allnews.update_one({'article_url':url_receive},{'$set':{'view':new_views}})
     return jsonify({'msg': '좋아요 완료'})
 
 

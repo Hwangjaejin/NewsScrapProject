@@ -2,12 +2,13 @@ import requests # 크롤링 요청할 때 사용.(API 사용시 필요)
 from bs4 import BeautifulSoup # 긁어 온 데이터를 잘 뽑아내기 위한 라이브러리
 
 from pymongo import MongoClient
-client = MongoClient('mongodb://test:test@localhost', 27017)
-# client = MongoClient('localhost', 27017)
+# client = MongoClient('mongodb://test:test@localhost', 27017)
+client = MongoClient('localhost', 27017)
 db = client.newsdb
+headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
+
 
 def insert_news():
-    headers = {'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
     data = requests.get('https://news.naver.com/main/ranking/popularDay.naver?mid=etc&sid1=111',headers=headers)
     soup = BeautifulSoup(data.text, 'html.parser') # soup : 해당페이지 html전체
     trs = soup.select('#wrap > div.rankingnews._popularWelBase._persist > div.rankingnews_box_wrap._popularRanking > div > div') # 웹에서 필요한 정보 우클릭 > 검사 > 해당영역 우클릭 > copy > copy selector
@@ -39,12 +40,23 @@ def insert_news():
                 'view': 0
             }
             db.news.insert_one(doc)
+            db.allnews.insert_one(doc)
 
+def insert_headline():
+    data = requests.get('https://edition.cnn.com/',headers=headers)
+    soup = BeautifulSoup(data.text, 'html.parser')
+    trs = soup.select('#intl_homepage1-zone-1 > div.l-container > div')
+    print(trs)
+    for tr in trs:
+        # img_url = tr.select_one('article > div > div.media > a')['href']
+        # img_text = tr.select_one('div > p').text
+        print(tr)
 
 # 기존 newsdb 콜렉션을 삭제하고, 출처 url들을 가져온 후, 크롤링하여 DB에 저장합니다.
 def insert_all():
-    db.news.drop()  # mystar 콜렉션을 모두 지워줍니다.
-    insert_news()
+    # db.news.drop()  # mystar 콜렉션을 모두 지워줍니다.
+    # insert_news()
+    insert_headline()
 
 
 ### 실행하기

@@ -44,6 +44,7 @@
         .haednews {
             float: left;
             width: 850px;
+            margin-bottom: 30px;
         }
 
         .headline {
@@ -61,16 +62,18 @@
         }
 
         .bodypart {
-            clear: both;
-            margin-top: 150px;
         }
 
+        .navibar {
+            clear: both;
+            margin-bottom: 5px;
+        }
         .list_box {
             float: left;
             width: 400px;
             padding-right: 20px;
-            margin-top: 20px;
             border-radius: 3px;
+            margin-bottom: 20px;
         }
 
         .list_img {
@@ -116,10 +119,61 @@
     <script>
         $(document).ready(function () {
             showArticles();
+           // getBookmark();
             showTopArticles();
             showHeadlineActicles();
+            clickNaviHome();
         });
 
+        function getBookmark(){
+            $.ajax({
+                type: "GET",
+                url: "/bookmark",
+                data: {},
+                success: function (response) {
+                    let bookmark = response['bookmark']
+                    let bookmarkid
+                    for(let i = 0; i < bookmark.length; i++){
+                        let company_name = bookmark[i]['company_name']
+                        let company_logo = bookmark[i]['company_logo']
+
+                        if (i % 5 == 0) {
+                            bookmarkid = 'bookmark-box' + i;
+                            let temp_html = `<div class="list_box">
+                                                <div class="input-group-text card-header">
+                                                    <div>
+                                                        <img class="logo_img" src="${company_logo}">
+                                                        <a href="#">
+                                                            <span onclick="clickBookmark('${company_name}')" class="fw-bold" style="font-size: 20px">${company_name}</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <ol id="${bookmarkid}" class="list-group list-group-numbered">
+                                                </ol>
+                                            </div>`
+                            $('#bookmark-box').append(temp_html)
+                        }
+
+                        let article_url = bookmark[i]['article_url']
+                        let article_title = bookmark[i]['article_title']
+                        let img_url = bookmark[i]['img_url']
+                        let time_ago = bookmark[i]['time_ago']
+
+
+                        let temp_html = `<li class="list-group-item d-flex justify-content-between align-items-start">
+                                              <div>
+                                                <a onclick="clickArticle('${article_url}')" target="_blank" href="${article_url}" class="ellipsis">
+                                                    ${article_title}
+                                                </a>
+                                                <p><small class="text-muted">${time_ago}</small></p>
+                                              </div>
+                                              <img class="list_img" src="${img_url}">
+                                         </li>`
+                        $('#'+bookmarkid).append(temp_html)
+                    }
+                }
+            })
+        }
         function showArticles() {
             $.ajax({
                 type: "GET",
@@ -127,8 +181,12 @@
                 data: {},
                 success: function (response) {
                     let news = response['all_news']
-                    let listid = ''
-
+                    let bookmarks = response['bookmark']
+                    let listid
+                    let bookmark_list = []
+                    for (let i = 0; i < bookmarks.length; i++){
+                        bookmark_list.push(bookmarks[i]['company_name'])
+                    }
                     for (let i = 0; i < news.length; i++) {
                         let company_name = news[i]['company_name']
                         let company_logo = news[i]['company_logo']
@@ -136,22 +194,40 @@
                             listid = 'list-box' + i;
                             let temp_html = `<div class="list_box">
                                                 <div class="input-group-text card-header">
-                                                    <img class="logo_img" src="${company_logo}">
-                                                    <span class="fw-bold" style="font-size: 20px">${company_name}</span>
+                                                    <div>
+                                                        <img class="logo_img" src="${company_logo}">
+                                                        <a href="#">
+                                                            <span onclick="clickBookmark('${company_name}')" class="fw-bold" style="font-size: 20px">${company_name}</span>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                                 <ol id="${listid}" class="list-group list-group-numbered">
                                                 </ol>
                                             </div>`
                             $('#lists-box').append(temp_html)
+
+                            if(bookmark_list.includes(company_name)){
+                                bookmarkid = 'bookmark-box' + i;
+                                let temp_html = `<div class="list_box">
+                                                <div class="input-group-text card-header">
+                                                    <div>
+                                                        <img class="logo_img" src="${company_logo}">
+                                                        <a href="#">
+                                                            <span onclick="clickBookmark('${company_name}')" class="fw-bold" style="font-size: 20px">${company_name}</span>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <ol id="${bookmarkid}" class="list-group list-group-numbered">
+                                                </ol>
+                                            </div>`
+                                $('#bookmark-box').append(temp_html)
+                            }
                         }
-                        let article_no = news[i]['article_no']
                         let article_url = news[i]['article_url']
                         let article_title = news[i]['article_title']
                         let img_url = news[i]['img_url']
                         let time_ago = news[i]['time_ago']
-                        let view = news[i]['view']
 
-                        let titleid = 'title' + i
                         let temp_html = `<li class="list-group-item d-flex justify-content-between align-items-start">
                                               <div>
                                                 <a onclick="clickArticle('${article_url}')" target="_blank" href="${article_url}" class="ellipsis">
@@ -162,7 +238,8 @@
                                               <img class="list_img" src="${img_url}">
                                          </li>`
                         $('#'+listid).append(temp_html)
-
+                        if(bookmark_list.includes(company_name))
+                            $('#'+bookmarkid).append(temp_html)
                     }
                 }
             })
@@ -235,7 +312,6 @@
             })
         }
         function clickArticle(article_url) {
-            console.log(article_url)
             $.ajax({
                 type: "POST",
                 url: "/article/views",
@@ -244,6 +320,26 @@
                     window.location.reload(); // 새로고침
                 }
             })
+        }
+        function clickBookmark(company_name) {
+            console.log(company_name)
+            $.ajax({
+                type: "POST",
+                url: "/bookmark",
+                data: {'company_name':company_name},
+                success: function (response) {
+                    alert(response["msg"]);
+                }
+            })
+            window.location.reload();
+        }
+        function clickNaviHome() {
+            $('#bookmark-box').hide();
+            $('#lists-box').show();
+        }
+        function clickNaviBookmark() {
+            $('#bookmark-box').show();
+            $('#lists-box').hide();
         }
     </script>
 </head>
@@ -268,31 +364,7 @@
                             aria-label="Slide 6"></button>
                 </div>
                 <div id="headline_news" class="carousel-inner headline" data-ride="carousel">
-<!--                    <div class="carousel-item active">-->
-<!--                        <a href="https://www.naver.com" target="_blank">-->
-<!--                            <img src="http://gifpng.com/300x200" class="d-block w-100 headline_img">-->
-<!--                        </a>-->
-<!--                        <div class="carousel-caption d-none d-md-block">-->
-<!--                            <h5>First slide label</h5>-->
-<!--                            <p>Some representative placeholder content for the first slide.</p>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                    <div class="carousel-item">-->
-<!--                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/600x400_kastra.jpg"-->
-<!--                             class="d-block w-100 headline_img">-->
-<!--                        <div class="carousel-caption d-none d-md-block">-->
-<!--                            <h5>Second slide label</h5>-->
-<!--                            <p>Some representative placeholder content for the second slide.</p>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                    <div class="carousel-item">-->
-<!--                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5b/India_Gate_600x400.jpg"-->
-<!--                             class="d-block w-100 headline_img">-->
-<!--                        <div class="carousel-caption d-none d-md-block">-->
-<!--                            <h5>Third slide label</h5>-->
-<!--                            <p>Some representative placeholder content for the third slide.</p>-->
-<!--                        </div>-->
-<!--                    </div>-->
+
                 </div>
                 <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
                         data-bs-slide="prev">
@@ -313,7 +385,25 @@
         </div>
     </div>
 
-    <div id="lists-box" class="bodypart">
+    <div class="navibar">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button onclick="clickNaviHome()" class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Home</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button onclick="clickNaviBookmark()" class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Bookmark</button>
+            </li>
+        </ul>
+        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+            <div id="lists-box" class="bodypart">
+
+            </div>
+        </div>
+        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+            <div id="bookmark-box" class="bodypart">
+
+            </div>
+        </div>
 
     </div>
 </div>

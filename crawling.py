@@ -70,6 +70,7 @@ def insert_headline():
 def insert_all():
     db.news.drop()  # mystar 콜렉션을 모두 지워줍니다.
     insert_news()
+    db.headlinenews.drop()
     insert_headline()
 
 
